@@ -1,0 +1,31 @@
+name: Daily Story
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # UTC 02:00 = 台灣時間 10:00
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Deploy next story from queue
+        run: python deploy_story.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "奇境說書館 Bot"
+          git config user.email "bot@strange-tales.github.io"
+          git add stories/ index.html queue/
+          git diff --staged --quiet || git commit -m "✨ 新增故事：$(date '+%Y-%m-%d')"
+          git push
