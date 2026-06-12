@@ -7,6 +7,7 @@
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 
@@ -47,6 +48,8 @@ def main():
     # 更新 index.html
     story_count = len(list(stories_dir.glob("*.html")))
 
+    upload_date = date.today().strftime("%Y-%m-%d")
+
     new_card = f"""
     <a href="stories/{slug}.html" class="story-card">
       <div class="card-visual">
@@ -58,7 +61,7 @@ def main():
         <div class="card-meta"><span>📍 {location}</span><span>📅 {date_str}</span></div>
         <h2 class="card-title">{title}</h2>
         <p class="card-excerpt">{excerpt}</p>
-        <div class="card-footer"><span class="read-more">閱讀全文</span></div>
+        <div class="card-footer"><span class="upload-date">上架 {upload_date}</span><span class="read-more">閱讀全文</span></div>
       </div>
     </a>
 
@@ -66,7 +69,8 @@ def main():
 
     index_path = Path("index.html")
     index = index_path.read_text(encoding="utf-8")
-    index = index.replace("<!-- STORIES_END -->", new_card + "<!-- STORIES_END -->")
+    # 新故事插入最前面（STORIES_START 後），最新的排第一
+    index = index.replace("<!-- STORIES_START -->", "<!-- STORIES_START -->\n" + new_card)
     index = re.sub(r"<span>\d+</span> 則奇案", f"<span>{story_count}</span> 則奇案", index)
     index = re.sub(
         r"\d+ 則真實存在、令人拍案的世界奇事",

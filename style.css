@@ -319,6 +319,12 @@ body::before {
 .story-card:hover .read-more { gap: 12px; }
 .read-more::after { content: '→'; }
 
+.upload-date {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+
 /* ── Footer ── */
 .site-footer {
   position: relative;
