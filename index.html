@@ -36,10 +36,8 @@
     </a>
     <nav>
       <ul class="site-nav">
-        <li><a href="#stories">所有故事</a></li>
-        <li><a href="#stories">歷史謎案</a></li>
-        <li><a href="#stories">超自然</a></li>
-        <li><a href="#stories">失蹤案件</a></li>
+        <li><a href="index.html">所有故事</a></li>
+        <li><a href="about.html">關於</a></li>
       </ul>
     </nav>
   </div>
@@ -68,7 +66,25 @@
     <p class="section-desc">98 則真實存在、令人拍案的世界奇事</p>
   </div>
 
-  <div class="stories-grid">
+  <div class="stories-toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" class="search-input" type="search" placeholder="搜尋故事標題或關鍵字…" autocomplete="off">
+    </div>
+    <button class="random-btn" id="randomBtn">✦ &nbsp;隨機一篇</button>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-cat="all">全部</button>
+    <button class="filter-btn" data-cat="歷史">📜 歷史</button>
+    <button class="filter-btn" data-cat="商業">💼 商業</button>
+    <button class="filter-btn" data-cat="科學">🔬 科學</button>
+    <button class="filter-btn" data-cat="政治">⚖️ 政治</button>
+    <button class="filter-btn" data-cat="人物">🎭 人物</button>
+    <button class="filter-btn" data-cat="台灣">🫧 台灣</button>
+  </div>
+
+  <div class="stories-grid" id="storiesGrid">
     <!-- STORIES_START -->
 
     <a href="stories/titanic-musicians.html" class="story-card">
@@ -1596,8 +1612,85 @@
     </a>
 
     <!-- STORIES_END -->
+    <p class="no-results" id="noResults">😶 找不到符合的故事，換個關鍵字試試？</p>
   </div>
 </main>
+
+<script>
+(function () {
+  // ── Category mapping (badge keyword → category) ──
+  const CAT_MAP = {
+    '歷史': ['歷史'],
+    '商業': ['商業', '發明', '數位'],
+    '科學': ['科學', '自然'],
+    '政治': ['黑暗', '冷戰', '政治', '現代', '災難'],
+    '人物': ['人物', '傳奇', '真實'],
+    '台灣': ['台灣', '文化'],
+  };
+
+  function getBadgeCat(badge) {
+    for (const [cat, keywords] of Object.entries(CAT_MAP)) {
+      for (const kw of keywords) {
+        if (badge.includes(kw)) return cat;
+      }
+    }
+    return 'other';
+  }
+
+  const cards = Array.from(document.querySelectorAll('#storiesGrid .story-card'));
+  const noResults = document.getElementById('noResults');
+
+  // Tag each card with data-cat
+  cards.forEach(card => {
+    const badge = card.querySelector('.card-badge')?.textContent || '';
+    card.dataset.cat = getBadgeCat(badge);
+  });
+
+  let activeCat = 'all';
+  let searchQ = '';
+
+  function applyFilters() {
+    let visible = 0;
+    cards.forEach(card => {
+      const catOk = activeCat === 'all' || card.dataset.cat === activeCat;
+      const title = card.querySelector('.card-title')?.textContent || '';
+      const excerpt = card.querySelector('.card-excerpt')?.textContent || '';
+      const badge = card.querySelector('.card-badge')?.textContent || '';
+      const searchOk = !searchQ || [title, excerpt, badge].some(t =>
+        t.toLowerCase().includes(searchQ)
+      );
+      const show = catOk && searchOk;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    noResults.style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  // Filter buttons
+  document.getElementById('filterBar').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    applyFilters();
+  });
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', e => {
+    searchQ = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  // Random story
+  document.getElementById('randomBtn').addEventListener('click', () => {
+    const visible = cards.filter(c => c.style.display !== 'none');
+    if (!visible.length) return;
+    const pick = visible[Math.floor(Math.random() * visible.length)];
+    window.location.href = pick.getAttribute('href');
+  });
+})();
+</script>
 
 <footer class="site-footer">
   <p class="footer-logo-text">奇境說書館</p>
