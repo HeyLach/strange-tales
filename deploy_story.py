@@ -39,8 +39,14 @@ def main():
     date_str = data["date_str"]
     excerpt  = data["excerpt"]
 
-    # 移除 metadata 注釋，寫入 stories/
+    # 移除 metadata 注釋，注入 story-extras.js，寫入 stories/
     clean_html = content.replace(meta_match.group(0), "", 1)
+    if 'story-extras.js' not in clean_html:
+        clean_html = clean_html.replace(
+            '</body>',
+            '<script src="../story-extras.js"></script>\n</body>',
+            1
+        )
     dest = stories_dir / f"{slug}.html"
     dest.write_text(clean_html, encoding="utf-8")
     html_file.unlink()
